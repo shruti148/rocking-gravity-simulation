@@ -871,6 +871,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   forwardSpeed: 5
   jumpForce: 12
+  dashForce: 20
+  dashDuration: 0.2
+  secondJumpCost: 10
+  dashCost: 15
+  slideDuration: 0.5
+  slideSpeedMultiplier: 1.5
+  slideCost: 5
+  slideColliderSize: {x: 1, y: 0.5}
+  slideColliderOffset: {x: 0, y: -0.25}
+  slideScaleY: 0.5
   maxHealth: 100
   currentHealth: 0
   healthDecreaseRate: 5
@@ -884,6 +894,8 @@ MonoBehaviour:
   spriteRenderer: {fileID: 1060555986}
   hurtColor: {r: 1, g: 0, b: 0, a: 1}
   hurtFlashTime: 0.2
+  invincibleTime: 1
+  invincibleFlashInterval: 0.12
 --- !u!50 &1060555989
 Rigidbody2D:
   serializedVersion: 5
@@ -1211,18 +1223,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 1487404513}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 44421c5932b9ed8459acdccdaee92e13, type: 3}
+  m_Script: {fileID: 11500000, guid: 43395c008e5542e49804242075cf0a3c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GroundSpawner
-  groundPrefab: {fileID: 8744553963353019957, guid: 94caa0a4941b1ce41aa2c50325e69ded, type: 3}
-  obstaclePrefab: {fileID: 996518750532316685, guid: e49725e81b8ad474488fe920ccc6dc69, type: 3}
-  coinPrefab: {fileID: 4401502065403732452, guid: ec28b17fe4fa278408be138151cd683d, type: 3}
-  groundLength: 10
-  initialGroundCount: 5
+  m_EditorClassIdentifier: Assembly-CSharp::PatternPrefabsSpawner
   player: {fileID: 1060555987}
-  obstacleChance: 0.3
-  coinChance: 0.5
-  spawnHeight: 1.5
+  spawnDistance: 30
+  defaultSegmentLength: 10
+  patterns:
+  - {fileID: 172704037806267649, guid: 291cd2eb037fd6644b2c8636806e85e9, type: 3}
+  - {fileID: 6372632969979519954, guid: 96ae12a529a232648af2d9d242f2e661, type: 3}
+  spawnParent: {fileID: 0}
+  despawnDistance: 20
 --- !u!1 &1560870177
 GameObject:
   m_ObjectHideFlags: 0
