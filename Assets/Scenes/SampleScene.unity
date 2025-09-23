@@ -919,7 +919,7 @@ Rigidbody2D:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_Interpolate: 1
+  m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 4
@@ -1232,7 +1232,8 @@ MonoBehaviour:
   patterns:
   - {fileID: 172704037806267649, guid: 291cd2eb037fd6644b2c8636806e85e9, type: 3}
   - {fileID: 6372632969979519954, guid: 96ae12a529a232648af2d9d242f2e661, type: 3}
-  spawnParent: {fileID: 0}
+  - {fileID: 172704037806267649, guid: 078e50d09bc80de48899a267e65576ca, type: 3}
+  spawnParent: {fileID: 1487404514}
   despawnDistance: 20
 --- !u!1 &1560870177
 GameObject:
