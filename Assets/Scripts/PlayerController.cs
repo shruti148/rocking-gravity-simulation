@@ -59,6 +59,11 @@ public class PlayerController : MonoBehaviour
     private Vector2 originalColliderOffset;
     private Vector3 originalScale;
 
+    // Coroutine references
+    private Coroutine boostCoroutine;
+    private Coroutine slowDownCoroutine;
+    private float baseSpeed;
+
     // 距离追踪
     private float startX;
     private float currentDistance;
@@ -74,6 +79,7 @@ public class PlayerController : MonoBehaviour
         originalScale = transform.localScale;
 
         currentHealth = maxHealth;
+        baseSpeed = forwardSpeed;
 
         if (spriteRenderer == null)
             spriteRenderer = GetComponent<SpriteRenderer>();
@@ -283,6 +289,56 @@ public class PlayerController : MonoBehaviour
 
         Debug.Log("You Win!");
         if (uiManager != null) uiManager.ShowWin();
+    }
+
+    public void ActivateBoost(float duration, float multiplier)
+    {
+        if (slowDownCoroutine != null)
+        {
+            StopCoroutine(slowDownCoroutine);
+            slowDownCoroutine = null;
+        }
+        if (boostCoroutine != null)
+        {
+            StopCoroutine(boostCoroutine);
+        }
+        boostCoroutine = StartCoroutine(Boost(duration, multiplier));
+    }
+
+    private IEnumerator Boost(float duration, float multiplier)
+    {
+        isInvincible = true;
+        forwardSpeed = baseSpeed * multiplier;
+
+        yield return new WaitForSeconds(duration);
+
+        forwardSpeed = baseSpeed;
+        isInvincible = false;
+        boostCoroutine = null;
+    }
+
+    public void ActivateSlowDown(float duration, float multiplier)
+    {
+        if (boostCoroutine != null)
+        {
+            StopCoroutine(boostCoroutine);
+            boostCoroutine = null;
+        }
+        if (slowDownCoroutine != null)
+        {
+            StopCoroutine(slowDownCoroutine);
+        }
+        slowDownCoroutine = StartCoroutine(SlowDown(duration, multiplier));
+    }
+
+    private IEnumerator SlowDown(float duration, float multiplier)
+    {
+        forwardSpeed = baseSpeed * multiplier;
+
+        yield return new WaitForSeconds(duration);
+
+        forwardSpeed = baseSpeed;
+        slowDownCoroutine = null;
     }
 
     public void RestartGame()

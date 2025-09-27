@@ -1272,7 +1272,7 @@ GameObject:
   - component: {fileID: 1060555988}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1778,6 +1778,9 @@ MonoBehaviour:
   - {fileID: 172704037806267649, guid: 078e50d09bc80de48899a267e65576ca, type: 3}
   - {fileID: 172704037806267649, guid: ac1cf8d962620624bb72f218c459558c, type: 3}
   - {fileID: 172704037806267649, guid: 1f66196ceb9f16145aff955d11298365, type: 3}
+  - {fileID: 6372632969979519954, guid: 533b6157eac162543bbff412bdcc1fa8, type: 3}
+  - {fileID: 172704037806267649, guid: 887a08f945a4d5a4c907833ece5394e4, type: 3}
+  - {fileID: 172704037806267649, guid: fc418a719058ffc43b72a97b4d42a05c, type: 3}
   spawnParent: {fileID: 1487404514}
   despawnDistance: 20
 --- !u!1 &1560870177
