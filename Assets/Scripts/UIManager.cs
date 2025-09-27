@@ -15,7 +15,7 @@ public class UIManager : MonoBehaviour
     public TMP_Text distanceText; 
 
     [Header("Game Settings")]
-    public float targetDistance = 500f; // 设置胜利需要达到的距离
+    public float targetDistance = 500f; // Distance required to win
 
     private bool gameStarted = false;
 
@@ -30,7 +30,7 @@ public class UIManager : MonoBehaviour
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (winPanel != null) winPanel.SetActive(false);
 
-        Time.timeScale = 0f; // 暂停游戏
+    Time.timeScale = 0f; // Pause game
     }
 
     public void StartGame()
@@ -75,6 +75,6 @@ public class UIManager : MonoBehaviour
     public void UpdateDistance(float currentDistance)
     {
         if (distanceText != null)
-            distanceText.text = $"Distance:\n {currentDistance:F1} / {targetDistance:F1} ";
+            distanceText.text = $"Distance:\n {currentDistance:F1}";
     }
 }

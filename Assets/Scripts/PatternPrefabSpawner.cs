@@ -2,19 +2,19 @@ using UnityEngine;
 
 public class PatternPrefabsSpawner : MonoBehaviour
 {
-    [Header("生成设置")]
-    public Transform player;            // 玩家
-    public float spawnDistance = 30f;   // 玩家前方多少距离生成
-    public float defaultSegmentLength = 10f; // 没有 Ground 时的默认宽度
+    [Header("Spawn Settings")]
+    public Transform player;            // Player
+    public float spawnDistance = 30f;   // Distance ahead of player to spawn
+    public float defaultSegmentLength = 10f; // Default width when no Ground present
 
-    [Header("关卡片段 Prefabs")]
+    [Header("Level Segment Prefabs")]
     public GameObject[] patterns;
 
-    [Header("生成父物体")]
+    [Header("Spawn Parent")]
     public Transform spawnParent;
 
-    [Header("自动销毁")]
-    public float despawnDistance = 20f; // 玩家后方多远销毁 prefab
+    [Header("Auto Despawn")]
+    public float despawnDistance = 20f; // How far behind the player to despawn prefabs
 
     private float lastX;
 
@@ -22,18 +22,18 @@ public class PatternPrefabsSpawner : MonoBehaviour
     {
         lastX = player.position.x;
 
-        // 初始生成 3 段
+        // Initially spawn 3 segments
         for (int i = 0; i < 3; i++)
             SpawnPattern();
     }
 
     void Update()
     {
-        // 生成玩家前方的 prefab
+        // Spawn prefabs ahead of the player
         if (player.position.x + spawnDistance > lastX)
             SpawnPattern();
 
-        // 自动销毁玩家后方 prefab
+        // Auto-despawn prefabs behind the player
         if (spawnParent != null)
         {
             for (int i = spawnParent.childCount - 1; i >= 0; i--)
@@ -74,20 +74,20 @@ public class PatternPrefabsSpawner : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning("Ground 缺少 BoxCollider2D：" + prefab.name);
+                Debug.LogWarning("Ground is missing BoxCollider2D: " + prefab.name);
             }
         }
         else
         {
-            Debug.LogWarning("Prefab 没有 Ground：" + prefab.name);
+            Debug.LogWarning("Prefab has no Ground: " + prefab.name);
         }
 
-        // X 轴对齐 lastX（Ground 左边缘对齐）
+        // Align on X axis to lastX (align Ground left edge)
         float offsetX = lastX - groundLeftEdge;
-        float targetY = 0f; // 地面 Y=0
+        float targetY = 0f; // Ground Y = 0
         newObj.transform.position += new Vector3(offsetX, targetY - groundY, 0);
 
-        // 更新 lastX 为 Ground 右边缘
+        // Update lastX to the Ground right edge
         lastX += groundRightEdge - groundLeftEdge;
     }
 }

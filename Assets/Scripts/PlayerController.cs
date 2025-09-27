@@ -8,7 +8,7 @@ using System.Collections;
 [RequireComponent(typeof(BoxCollider2D))]
 public class PlayerController : MonoBehaviour
 {
-    [Header("移动设置")]
+    [Header("Movement Settings")]
     public float forwardSpeed = 5f;
     public float jumpForce = 12f;
     public float dashForce = 20f;
@@ -16,33 +16,33 @@ public class PlayerController : MonoBehaviour
     public float secondJumpCost = 10f;
     public float dashCost = 15f;
 
-    [Header("滑行设置")]
+    [Header("Slide Settings")]
     public float slideDuration = 0.5f;
     public float slideSpeedMultiplier = 1.5f;
     public float slideCost = 5f;
     public Vector2 slideColliderSize = new Vector2(1f, 0.5f);
     public Vector2 slideColliderOffset = new Vector2(0f, -0.25f);
-    public float slideScaleY = 0.5f; // 玩家视觉缩小比例
+    public float slideScaleY = 0.5f; // Visual scale reduction during slide
 
-    [Header("生命值")]
+    [Header("Health")]
     public float maxHealth = 100f;
     public float currentHealth;
     public float healthDecreaseRate = 5f;
 
-    [Header("地面检测")]
+    [Header("Ground Detection")]
     public Transform groundCheck;
     public float checkRadius = 0.1f;
     public LayerMask groundLayer;
 
-    [Header("受伤反馈")]
+    [Header("Hurt Feedback")]
     public SpriteRenderer spriteRenderer;
     public Color hurtColor = Color.red;
     public float hurtFlashTime = 0.1f;
     public float invincibleTime = 1f;
     public float invincibleFlashInterval = 0.12f;
 
-    [Header("UI 管理器")]
-    public UIManager uiManager;   // 关联 UIManager
+    [Header("UI Manager")]
+    public UIManager uiManager;   // Reference to UIManager
 
     private Rigidbody2D rb;
     private BoxCollider2D boxCollider;
@@ -64,7 +64,7 @@ public class PlayerController : MonoBehaviour
     private Coroutine slowDownCoroutine;
     private float baseSpeed;
 
-    // 距离追踪
+    // Distance tracking
     private float startX;
     private float currentDistance;
 
@@ -85,10 +85,10 @@ public class PlayerController : MonoBehaviour
             spriteRenderer = GetComponent<SpriteRenderer>();
         originalColor = spriteRenderer != null ? spriteRenderer.color : Color.white;
 
-        // 记录起始位置
-        startX = transform.position.x;
+    // Record start position
+    startX = transform.position.x;
 
-        // 初始化 UI
+    // Initialize UI
         if (uiManager != null)
         {
             uiManager.UpdateHealth(currentHealth, maxHealth);
@@ -100,7 +100,7 @@ public class PlayerController : MonoBehaviour
     {
         if (isDead) return;
 
-        // 生命值持续减少
+    // Health decreases over time
         currentHealth -= healthDecreaseRate * Time.deltaTime;
         currentHealth = Mathf.Max(currentHealth, 0);
 
@@ -109,34 +109,35 @@ public class PlayerController : MonoBehaviour
 
         if (currentHealth <= 0) Die();
 
-        // 地面检测
-        isGrounded = groundCheck != null && Physics2D.OverlapCircle(groundCheck.position, checkRadius, groundLayer);
+    // Ground check
+    isGrounded = groundCheck != null && Physics2D.OverlapCircle(groundCheck.position, checkRadius, groundLayer);
 
         if (isGrounded) jumpCount = 0;
 
-        // 跳跃输入
-        if (Keyboard.current.spaceKey.wasPressedThisFrame)
+        // Jump input (Space or W)
+        if (Keyboard.current.spaceKey.wasPressedThisFrame || Keyboard.current.wKey.wasPressedThisFrame)
             jumpPressed = true;
 
-        // Dash 输入
+        // Dash input
         if (Keyboard.current.leftShiftKey.wasPressedThisFrame && !isDashing && !isSliding && currentHealth > dashCost)
             StartCoroutine(Dash());
 
-        // Slide 输入
+        // Slide input
         if ((Keyboard.current.sKey.wasPressedThisFrame || Keyboard.current.downArrowKey.wasPressedThisFrame)
             && isGrounded && !isSliding && !isDashing && currentHealth > slideCost)
             StartCoroutine(Slide());
 
-        // 更新距离
+        // Update distance
         currentDistance = transform.position.x - startX;
         if (uiManager != null)
             uiManager.UpdateDistance(currentDistance);
 
-        // 检查胜利条件
+        /* Check win condition
         if (uiManager != null && currentDistance >= uiManager.targetDistance)
         {
             Win();
         }
+        */
     }
 
     void FixedUpdate()
