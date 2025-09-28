@@ -133,10 +133,10 @@ public class PlayerController : MonoBehaviour
             uiManager.UpdateDistance(currentDistance);
 
         // Check win condition
-        if (uiManager != null && currentDistance >= uiManager.targetDistance)
-        {
-            Win();
-        }
+        // if (uiManager != null && currentDistance >= uiManager.targetDistance)
+        // {
+        //     Win();
+        // }
     }
 
     void FixedUpdate()
