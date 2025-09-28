@@ -85,10 +85,10 @@ public class PlayerController : MonoBehaviour
             spriteRenderer = GetComponent<SpriteRenderer>();
         originalColor = spriteRenderer != null ? spriteRenderer.color : Color.white;
 
-    // Record start position
-    startX = transform.position.x;
+        // Record start position
+        startX = transform.position.x;
 
-    // Initialize UI
+        // Initialize UI
         if (uiManager != null)
         {
             uiManager.UpdateHealth(currentHealth, maxHealth);
@@ -100,7 +100,7 @@ public class PlayerController : MonoBehaviour
     {
         if (isDead) return;
 
-    // Health decreases over time
+        // Health decreases over time
         currentHealth -= healthDecreaseRate * Time.deltaTime;
         currentHealth = Mathf.Max(currentHealth, 0);
 
@@ -109,13 +109,13 @@ public class PlayerController : MonoBehaviour
 
         if (currentHealth <= 0) Die();
 
-    // Ground check
-    isGrounded = groundCheck != null && Physics2D.OverlapCircle(groundCheck.position, checkRadius, groundLayer);
+        // Ground check
+        isGrounded = groundCheck != null && Physics2D.OverlapCircle(groundCheck.position, checkRadius, groundLayer);
 
         if (isGrounded) jumpCount = 0;
 
-        // Jump input (Space or W)
-        if (Keyboard.current.spaceKey.wasPressedThisFrame || Keyboard.current.wKey.wasPressedThisFrame)
+        // Jump input
+        if (Keyboard.current.spaceKey.wasPressedThisFrame)
             jumpPressed = true;
 
         // Dash input
@@ -132,12 +132,11 @@ public class PlayerController : MonoBehaviour
         if (uiManager != null)
             uiManager.UpdateDistance(currentDistance);
 
-        /* Check win condition
+        // Check win condition
         if (uiManager != null && currentDistance >= uiManager.targetDistance)
         {
             Win();
         }
-        */
     }
 
     void FixedUpdate()
@@ -324,6 +323,7 @@ public class PlayerController : MonoBehaviour
         {
             StopCoroutine(boostCoroutine);
             boostCoroutine = null;
+            isInvincible = false; // BUG FIX: Manually reset invincibility
         }
         if (slowDownCoroutine != null)
         {
