@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class GroundSpawner : MonoBehaviour
 {
-    [Header("生成设置")]
+    [Header("Spawn Settings")]
     public GameObject groundPrefab;
     public GameObject obstaclePrefab;
     public GameObject coinPrefab;
@@ -10,7 +10,7 @@ public class GroundSpawner : MonoBehaviour
     public int initialGroundCount = 5;
     public Transform player;
 
-    [Header("障碍 / 硬币设置")]
+    [Header("Obstacle / Coin Settings")]
     public float obstacleChance = 0.3f;
     public float coinChance = 0.5f;
     public float spawnHeight = 1.5f;
@@ -19,7 +19,7 @@ public class GroundSpawner : MonoBehaviour
 
     void Start()
     {
-        // 先生成初始地面
+        // Spawn initial ground pieces
         for (int i = 0; i < initialGroundCount; i++)
         {
             SpawnGround();
@@ -28,7 +28,7 @@ public class GroundSpawner : MonoBehaviour
 
     void Update()
     {
-        // 玩家接近最后一块地面时继续生成
+        // Continue spawning when player approaches the last piece
         if (player.position.x + groundLength * 2 > spawnX)
         {
             SpawnGround();
@@ -39,14 +39,14 @@ public class GroundSpawner : MonoBehaviour
     {
         GameObject ground = Instantiate(groundPrefab, new Vector3(spawnX, 0, 0), Quaternion.identity);
 
-        // 随机生成障碍
+        // Randomly spawn obstacles
         if (Random.value < obstacleChance)
         {
             Vector3 obstaclePos = new Vector3(spawnX + Random.Range(2f, groundLength - 2f), 0.5f, 0);
             Instantiate(obstaclePrefab, obstaclePos, Quaternion.identity);
         }
 
-        // 随机生成硬币
+        // Randomly spawn coins
         if (Random.value < coinChance)
         {
             Vector3 coinPos = new Vector3(spawnX + Random.Range(1f, groundLength - 1f), spawnHeight, 0);

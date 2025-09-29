@@ -8,7 +8,7 @@ using System.Collections;
 [RequireComponent(typeof(BoxCollider2D))]
 public class PlayerController : MonoBehaviour
 {
-    [Header("移动设置")]
+    [Header("Movement Settings")]
     public float forwardSpeed = 5f;
     public float jumpForce = 12f;
     public float dashForce = 20f;
@@ -16,34 +16,37 @@ public class PlayerController : MonoBehaviour
     public float secondJumpCost = 10f;
     public float dashCost = 15f;
 
-    [Header("滑行设置")]
+    [Header("Slide Settings")]
     public float slideDuration = 0.5f;
     public float slideSpeedMultiplier = 1.5f;
     public float slideCost = 5f;
     public Vector2 slideColliderSize = new Vector2(1f, 0.5f);
     public Vector2 slideColliderOffset = new Vector2(0f, -0.25f);
-    public float slideScaleY = 0.5f; // 玩家视觉缩小比例
+    public float slideScaleY = 0.5f; // Visual scale reduction during slide
 
-    [Header("生命值")]
+    [Header("Health")]
     public float maxHealth = 100f;
     public float currentHealth;
     public float healthDecreaseRate = 5f;
+    
+    [Header("Damage / Heal Settings")]
+    public float coinHealthGain = 30f; // Health gained when collecting a coin
+    public float obstacleDamage = 20f; // Damage taken when hitting an obstacle
 
-    [Header("地面检测")]
+    [Header("Ground Detection")]
     public Transform groundCheck;
     public float checkRadius = 0.1f;
     public LayerMask groundLayer;
 
-    [Header("UI")]
-    public Slider healthSlider;
-    public GameObject gameOverPanel;
-
-    [Header("受伤反馈")]
+    [Header("Hurt Feedback")]
     public SpriteRenderer spriteRenderer;
     public Color hurtColor = Color.red;
     public float hurtFlashTime = 0.1f;
     public float invincibleTime = 1f;
     public float invincibleFlashInterval = 0.12f;
+
+    [Header("UI Manager")]
+    public UIManager uiManager;   // Reference to UIManager
 
     private Rigidbody2D rb;
     private BoxCollider2D boxCollider;
@@ -55,9 +58,19 @@ public class PlayerController : MonoBehaviour
     private bool isSliding = false;
     private bool isInvincible = false;
     private Color originalColor;
+
     private Vector2 originalColliderSize;
     private Vector2 originalColliderOffset;
     private Vector3 originalScale;
+
+    // Coroutine references
+    private Coroutine boostCoroutine;
+    private Coroutine slowDownCoroutine;
+    private float baseSpeed;
+
+    // Distance tracking
+    private float startX;
+    private float currentDistance;
 
     void Start()
     {
@@ -67,63 +80,73 @@ public class PlayerController : MonoBehaviour
         boxCollider = GetComponent<BoxCollider2D>();
         originalColliderSize = boxCollider.size;
         originalColliderOffset = boxCollider.offset;
-
         originalScale = transform.localScale;
 
         currentHealth = maxHealth;
-
-        if (healthSlider != null)
-        {
-            healthSlider.maxValue = maxHealth;
-            healthSlider.value = currentHealth;
-        }
-
-        if (gameOverPanel != null)
-            gameOverPanel.SetActive(false);
+        baseSpeed = forwardSpeed;
 
         if (spriteRenderer == null)
             spriteRenderer = GetComponent<SpriteRenderer>();
-
         originalColor = spriteRenderer != null ? spriteRenderer.color : Color.white;
+
+        // Record start position
+        startX = transform.position.x;
+
+        // Initialize UI
+        if (uiManager != null)
+        {
+            uiManager.UpdateHealth(currentHealth, maxHealth);
+            uiManager.UpdateDistance(0f);
+        }
     }
 
     void Update()
     {
         if (isDead) return;
 
-        // 生命值持续减少
+        // Health decreases over time
         currentHealth -= healthDecreaseRate * Time.deltaTime;
         currentHealth = Mathf.Max(currentHealth, 0);
 
-        if (healthSlider != null)
-            healthSlider.value = currentHealth;
+        if (uiManager != null)
+            uiManager.UpdateHealth(currentHealth, maxHealth);
 
         if (currentHealth <= 0) Die();
 
-        // 地面检测
+        // Ground check
         isGrounded = groundCheck != null && Physics2D.OverlapCircle(groundCheck.position, checkRadius, groundLayer);
 
         if (isGrounded) jumpCount = 0;
 
-        // 跳跃输入
+        // Jump input
         if (Keyboard.current.spaceKey.wasPressedThisFrame)
             jumpPressed = true;
 
-        // Dash 输入
+        // Dash input
         if (Keyboard.current.leftShiftKey.wasPressedThisFrame && !isDashing && !isSliding && currentHealth > dashCost)
             StartCoroutine(Dash());
 
-        // Slide 输入
+        // Slide input
         if ((Keyboard.current.sKey.wasPressedThisFrame || Keyboard.current.downArrowKey.wasPressedThisFrame)
             && isGrounded && !isSliding && !isDashing && currentHealth > slideCost)
             StartCoroutine(Slide());
+
+        // Update distance
+        currentDistance = transform.position.x - startX;
+        if (uiManager != null)
+            uiManager.UpdateDistance(currentDistance);
+
+        // Check win condition
+        // if (uiManager != null && currentDistance >= uiManager.targetDistance)
+        // {
+        //     Win();
+        // }
     }
 
     void FixedUpdate()
     {
         if (isDead) return;
 
-        // 向前移动（Dash / Slide 时速度各自处理）
         if (!isDashing)
         {
             float speed = forwardSpeed;
@@ -133,7 +156,6 @@ public class PlayerController : MonoBehaviour
             rb.linearVelocity = new Vector2(speed, rb.linearVelocity.y);
         }
 
-        // 跳跃 & 二段跳
         if (jumpPressed && !isSliding && !isDashing)
         {
             if (isGrounded)
@@ -145,7 +167,7 @@ public class PlayerController : MonoBehaviour
             {
                 rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
                 currentHealth -= secondJumpCost;
-                if (healthSlider != null) healthSlider.value = currentHealth;
+                if (uiManager != null) uiManager.UpdateHealth(currentHealth, maxHealth);
                 jumpCount = 2;
             }
             jumpPressed = false;
@@ -156,7 +178,7 @@ public class PlayerController : MonoBehaviour
     {
         isDashing = true;
         currentHealth -= dashCost;
-        if (healthSlider != null) healthSlider.value = currentHealth;
+        if (uiManager != null) uiManager.UpdateHealth(currentHealth, maxHealth);
 
         float originalGravity = rb.gravityScale;
         rb.gravityScale = 0;
@@ -172,19 +194,16 @@ public class PlayerController : MonoBehaviour
     {
         isSliding = true;
         currentHealth -= slideCost;
-        if (healthSlider != null) healthSlider.value = currentHealth;
+        if (uiManager != null) uiManager.UpdateHealth(currentHealth, maxHealth);
 
-        // 保存原始碰撞体和玩家缩放
         Vector2 originalSize = boxCollider.size;
         Vector2 originalOffset = boxCollider.offset;
         Vector3 originalPlayerScale = transform.localScale;
 
-        // 改变碰撞体和玩家视觉大小
         boxCollider.size = slideColliderSize;
         boxCollider.offset = slideColliderOffset;
         transform.localScale = new Vector3(originalPlayerScale.x, originalPlayerScale.y * slideScaleY, originalPlayerScale.z);
 
-        // 增加速度
         float originalSpeed = forwardSpeed;
         forwardSpeed *= slideSpeedMultiplier;
 
@@ -195,7 +214,6 @@ public class PlayerController : MonoBehaviour
             yield return null;
         }
 
-        // 恢复碰撞体、玩家视觉大小和速度
         boxCollider.size = originalSize;
         boxCollider.offset = originalOffset;
         transform.localScale = originalPlayerScale;
@@ -210,14 +228,14 @@ public class PlayerController : MonoBehaviour
 
         if (collision.CompareTag("Coin"))
         {
-            currentHealth += 20f;
+            currentHealth += coinHealthGain;
             currentHealth = Mathf.Min(currentHealth, maxHealth);
-            if (healthSlider != null) healthSlider.value = currentHealth;
+            if (uiManager != null) uiManager.UpdateHealth(currentHealth, maxHealth);
             Destroy(collision.gameObject);
         }
         else if (collision.CompareTag("Obstacle"))
         {
-            TakeDamage(30f);
+            TakeDamage(obstacleDamage);
         }
     }
 
@@ -226,7 +244,7 @@ public class PlayerController : MonoBehaviour
         if (isInvincible) return;
 
         currentHealth -= damage;
-        if (healthSlider != null) healthSlider.value = currentHealth;
+        if (uiManager != null) uiManager.UpdateHealth(currentHealth, maxHealth);
 
         if (spriteRenderer != null)
             StartCoroutine(HurtThenInvincible());
@@ -264,7 +282,68 @@ public class PlayerController : MonoBehaviour
         rb.simulated = false;
 
         Debug.Log("Game Over!");
-        if (gameOverPanel != null) gameOverPanel.SetActive(true);
+        if (uiManager != null) uiManager.ShowGameOver();
+    }
+
+    void Win()
+    {
+        isDead = true;
+        rb.linearVelocity = Vector2.zero;
+        rb.simulated = false;
+
+        Debug.Log("You Win!");
+        if (uiManager != null) uiManager.ShowWin();
+    }
+
+    public void ActivateBoost(float duration, float multiplier)
+    {
+        if (slowDownCoroutine != null)
+        {
+            StopCoroutine(slowDownCoroutine);
+            slowDownCoroutine = null;
+        }
+        if (boostCoroutine != null)
+        {
+            StopCoroutine(boostCoroutine);
+        }
+        boostCoroutine = StartCoroutine(Boost(duration, multiplier));
+    }
+
+    private IEnumerator Boost(float duration, float multiplier)
+    {
+        isInvincible = true;
+        forwardSpeed = baseSpeed * multiplier;
+
+        yield return new WaitForSeconds(duration);
+
+        forwardSpeed = baseSpeed;
+        isInvincible = false;
+        boostCoroutine = null;
+    }
+
+    public void ActivateSlowDown(float duration, float multiplier)
+    {
+        if (boostCoroutine != null)
+        {
+            StopCoroutine(boostCoroutine);
+            boostCoroutine = null;
+            isInvincible = false; // BUG FIX: Manually reset invincibility
+        }
+        if (slowDownCoroutine != null)
+        {
+            StopCoroutine(slowDownCoroutine);
+        }
+        slowDownCoroutine = StartCoroutine(SlowDown(duration, multiplier));
+    }
+
+    private IEnumerator SlowDown(float duration, float multiplier)
+    {
+        forwardSpeed = baseSpeed * multiplier;
+
+        yield return new WaitForSeconds(duration);
+
+        forwardSpeed = baseSpeed;
+        slowDownCoroutine = null;
     }
 
     public void RestartGame()

@@ -2,38 +2,37 @@ using UnityEngine;
 
 public class PatternPrefabsSpawner : MonoBehaviour
 {
-    [Header("生成设置")]
-    public Transform player;            // 玩家
-    public float spawnDistance = 30f;   // 玩家前方多少距离生成
-    public float defaultSegmentLength = 10f; // 没有 Ground 时的默认宽度
+    [Header("Spawn Settings")]
+    public Transform player;            
+    public float spawnDistance = 30f;   
+    public float defaultSegmentLength = 10f; 
 
-    [Header("关卡片段 Prefabs")]
-    public GameObject[] patterns;
+    [Header("Level Segment Prefabs")]
+    public GameObject[] patterns;       
 
-    [Header("生成父物体")]
-    public Transform spawnParent;
+    [Header("Spawn Parent")]
+    public Transform spawnParent;       
 
-    [Header("自动销毁")]
-    public float despawnDistance = 20f; // 玩家后方多远销毁 prefab
+    [Header("Auto Despawn")]
+    public float despawnDistance = 20f; 
 
-    private float lastX;
+    private float lastX; 
 
     void Start()
     {
-        lastX = player.position.x;
+        // First segment: force place under the player
+        SpawnPattern(true);
 
-        // 初始生成 3 段
-        for (int i = 0; i < 3; i++)
+        // Spawn a few more ahead
+        for (int i = 0; i < 2; i++)
             SpawnPattern();
     }
 
     void Update()
     {
-        // 生成玩家前方的 prefab
         if (player.position.x + spawnDistance > lastX)
             SpawnPattern();
 
-        // 自动销毁玩家后方 prefab
         if (spawnParent != null)
         {
             for (int i = spawnParent.childCount - 1; i >= 0; i--)
@@ -45,7 +44,7 @@ public class PatternPrefabsSpawner : MonoBehaviour
         }
     }
 
-    void SpawnPattern()
+    void SpawnPattern(bool isFirst = false)
     {
         if (patterns.Length == 0) return;
 
@@ -67,27 +66,29 @@ public class PatternPrefabsSpawner : MonoBehaviour
             BoxCollider2D groundCollider = ground.GetComponent<BoxCollider2D>();
             if (groundCollider != null)
             {
-                float scaleX = ground.localScale.x;
-                groundLeftEdge  = ground.position.x + groundCollider.offset.x * scaleX - (groundCollider.size.x * scaleX) / 2f;
-                groundRightEdge = ground.position.x + groundCollider.offset.x * scaleX + (groundCollider.size.x * scaleX) / 2f;
-                groundY = ground.position.y;
+                Bounds bounds = groundCollider.bounds;
+                groundLeftEdge = bounds.min.x;
+                groundRightEdge = bounds.max.x;
+                groundY = bounds.min.y;
             }
-            else
-            {
-                Debug.LogWarning("Ground 缺少 BoxCollider2D：" + prefab.name);
-            }
+        }
+
+        if (isFirst)
+        {
+            // ✅ Place the first segment so that its left edge is at player.position.x - 1f
+            float targetX = player.position.x - 1f; // leave a little space so player stands on it
+            float offsetX = targetX - groundLeftEdge;
+            newObj.transform.position += new Vector3(offsetX, -groundY, 0);
+
+            // Update lastX
+            lastX = newObj.GetComponentInChildren<BoxCollider2D>().bounds.max.x;
         }
         else
         {
-            Debug.LogWarning("Prefab 没有 Ground：" + prefab.name);
+            float offsetX = lastX - groundLeftEdge;
+            newObj.transform.position += new Vector3(offsetX, -groundY, 0);
+
+            lastX += groundRightEdge - groundLeftEdge;
         }
-
-        // X 轴对齐 lastX（Ground 左边缘对齐）
-        float offsetX = lastX - groundLeftEdge;
-        float targetY = 0f; // 地面 Y=0
-        newObj.transform.position += new Vector3(offsetX, targetY - groundY, 0);
-
-        // 更新 lastX 为 Ground 右边缘
-        lastX += groundRightEdge - groundLeftEdge;
     }
 }
