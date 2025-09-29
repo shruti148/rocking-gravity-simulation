@@ -28,6 +28,10 @@ public class PlayerController : MonoBehaviour
     public float maxHealth = 100f;
     public float currentHealth;
     public float healthDecreaseRate = 5f;
+    
+    [Header("Damage / Heal Settings")]
+    public float coinHealthGain = 30f; // Health gained when collecting a coin
+    public float obstacleDamage = 20f; // Damage taken when hitting an obstacle
 
     [Header("Ground Detection")]
     public Transform groundCheck;
@@ -224,14 +228,14 @@ public class PlayerController : MonoBehaviour
 
         if (collision.CompareTag("Coin"))
         {
-            currentHealth += 20f;
+            currentHealth += coinHealthGain;
             currentHealth = Mathf.Min(currentHealth, maxHealth);
             if (uiManager != null) uiManager.UpdateHealth(currentHealth, maxHealth);
             Destroy(collision.gameObject);
         }
         else if (collision.CompareTag("Obstacle"))
         {
-            TakeDamage(30f);
+            TakeDamage(obstacleDamage);
         }
     }
 
