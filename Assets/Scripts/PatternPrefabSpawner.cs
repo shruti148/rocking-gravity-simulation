@@ -3,37 +3,36 @@ using UnityEngine;
 public class PatternPrefabsSpawner : MonoBehaviour
 {
     [Header("Spawn Settings")]
-    public Transform player;            // Player
-    public float spawnDistance = 30f;   // Distance ahead of player to spawn
-    public float defaultSegmentLength = 10f; // Default width when no Ground present
+    public Transform player;            
+    public float spawnDistance = 30f;   
+    public float defaultSegmentLength = 10f; 
 
     [Header("Level Segment Prefabs")]
-    public GameObject[] patterns;
+    public GameObject[] patterns;       
 
     [Header("Spawn Parent")]
-    public Transform spawnParent;
+    public Transform spawnParent;       
 
     [Header("Auto Despawn")]
-    public float despawnDistance = 20f; // How far behind the player to despawn prefabs
+    public float despawnDistance = 20f; 
 
-    private float lastX;
+    private float lastX; 
 
     void Start()
     {
-        lastX = player.position.x;
+        // First segment: force place under the player
+        SpawnPattern(true);
 
-        // Initially spawn 3 segments
-        for (int i = 0; i < 3; i++)
+        // Spawn a few more ahead
+        for (int i = 0; i < 2; i++)
             SpawnPattern();
     }
 
     void Update()
     {
-        // Spawn prefabs ahead of the player
         if (player.position.x + spawnDistance > lastX)
             SpawnPattern();
 
-        // Auto-despawn prefabs behind the player
         if (spawnParent != null)
         {
             for (int i = spawnParent.childCount - 1; i >= 0; i--)
@@ -45,7 +44,7 @@ public class PatternPrefabsSpawner : MonoBehaviour
         }
     }
 
-    void SpawnPattern()
+    void SpawnPattern(bool isFirst = false)
     {
         if (patterns.Length == 0) return;
 
@@ -67,27 +66,29 @@ public class PatternPrefabsSpawner : MonoBehaviour
             BoxCollider2D groundCollider = ground.GetComponent<BoxCollider2D>();
             if (groundCollider != null)
             {
-                float scaleX = ground.localScale.x;
-                groundLeftEdge  = ground.position.x + groundCollider.offset.x * scaleX - (groundCollider.size.x * scaleX) / 2f;
-                groundRightEdge = ground.position.x + groundCollider.offset.x * scaleX + (groundCollider.size.x * scaleX) / 2f;
-                groundY = ground.position.y;
+                Bounds bounds = groundCollider.bounds;
+                groundLeftEdge = bounds.min.x;
+                groundRightEdge = bounds.max.x;
+                groundY = bounds.min.y;
             }
-            else
-            {
-                Debug.LogWarning("Ground is missing BoxCollider2D: " + prefab.name);
-            }
+        }
+
+        if (isFirst)
+        {
+            // ✅ Place the first segment so that its left edge is at player.position.x - 1f
+            float targetX = player.position.x - 1f; // leave a little space so player stands on it
+            float offsetX = targetX - groundLeftEdge;
+            newObj.transform.position += new Vector3(offsetX, -groundY, 0);
+
+            // Update lastX
+            lastX = newObj.GetComponentInChildren<BoxCollider2D>().bounds.max.x;
         }
         else
         {
-            Debug.LogWarning("Prefab has no Ground: " + prefab.name);
+            float offsetX = lastX - groundLeftEdge;
+            newObj.transform.position += new Vector3(offsetX, -groundY, 0);
+
+            lastX += groundRightEdge - groundLeftEdge;
         }
-
-        // Align on X axis to lastX (align Ground left edge)
-        float offsetX = lastX - groundLeftEdge;
-        float targetY = 0f; // Ground Y = 0
-        newObj.transform.position += new Vector3(offsetX, targetY - groundY, 0);
-
-        // Update lastX to the Ground right edge
-        lastX += groundRightEdge - groundLeftEdge;
     }
 }
