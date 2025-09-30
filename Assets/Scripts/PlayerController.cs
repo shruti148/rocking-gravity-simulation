@@ -119,7 +119,7 @@ public class PlayerController : MonoBehaviour
         if (isGrounded) jumpCount = 0;
 
         // Jump input
-        if (Keyboard.current.spaceKey.wasPressedThisFrame)
+        if (Keyboard.current.spaceKey.wasPressedThisFrame || Keyboard.current.wKey.wasPressedThisFrame)
             jumpPressed = true;
 
         // Dash input
