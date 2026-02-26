@@ -1,1 +1,23 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/zeWBxKAP)
+# Rocking Gravity – Unity 3D Physics Simulation
+
+A 3D physics-based Unity project implementing custom gravity mechanics, player interaction, and object dynamics.
+
+## Features
+- Custom gravity behavior
+- Player movement & jump mechanics
+- Modular prefab spawning system
+- Optimized Unity project structure
+
+## Tech Stack
+- Unity (C#)
+- Universal Render Pipeline
+- Git & Version Control
+
+## How to Run
+1. Open in Unity (LTS recommended).
+2. Open `Assets/Scenes/SampleScene.unity`.
+3. Press Play.
+
+---
+
+Built as part of USC CSCI-526.
